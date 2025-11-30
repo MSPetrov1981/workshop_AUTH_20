@@ -43,11 +43,11 @@ jobs:
     
     - name: Run tests with pytest
       run: |
-        pytest --ds=myproject.settings
+        pytest --ds=auth_project.settings
     
     - name: Generate coverage report
       run: |
-        coverage run -m pytest --ds=myproject.settings
+        coverage run -m pytest --ds=auth_project.settings
         coverage report
         coverage html
     
