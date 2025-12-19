@@ -26,11 +26,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Копируем весь проект
 COPY  auth_project/ ./app
 
-# Создаем директории для статики и медиа
-RUN mkdir -p /auth_project/staticfiles /app/media
 
-# Собираем статику Django
-RUN python manage.py collectstatic --noinput
 
 # Открываем порт
 EXPOSE 8000
