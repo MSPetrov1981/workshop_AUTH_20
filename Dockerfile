@@ -1,35 +1,32 @@
-# Dockerfile
-# Используем официальный образ Python
-FROM python:3.11-slim
+FROM python:3.12 as builder
 
-# Устанавливаем переменные окружения
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
-
-# Создаем и переходим в рабочую директорию
 WORKDIR /app
 
-# Устанавливаем системные зависимости
-RUN apt-get update && apt-get install -y \
-    gcc \
-    postgresql-client \
-    libpq-dev \
-    curl \
-    netcat-traditional \
-    && rm -rf /var/lib/apt/lists/*
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    POETRY_VERSION=1.7.1
 
-# Копируем и устанавливаем Python зависимости
-COPY requirements.txt /app/
-RUN pip install --no-cache-dir -r requirements.txt
+RUN apt-get update && \
+    rm -rf /var/lib/apt/lists/* && \
+    pip install --upgrade pip && \
+    pip install "poetry==$POETRY_VERSION"
 
-# Копируем весь проект
-COPY  auth_project/ ./app
+COPY poetry.lock pyproject.toml ./
 
+RUN poetry config virtualenvs.create false && \
+    poetry install --no-dev --no-interaction --no-ansi
 
+FROM python:3.12
 
-# Открываем порт
-EXPOSE 8000
+WORKDIR /app
 
-# Команда запуска
-CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]
+ENV GUNICORN_TIMEOUT=0
+
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+COPY . ./
+
+RUN chmod +x ./entrypoint-prod.sh
+
+CMD ["./entrypoint-prod.sh"]
