@@ -13,8 +13,7 @@ RUN apt-get update && \
 
 
 
-RUN poetry config virtualenvs.create false && \
-    poetry install --no-dev --no-interaction --no-ansi
+
 
 FROM python:3.12
 
